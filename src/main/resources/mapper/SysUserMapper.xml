@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.winphone.xjwrj.mapper.SysUserMapper">
+
+	<!-- 通用查询映射结果 -->
+	<resultMap id="BaseResultMap" type="com.winphone.xjwrj.entity.SysUser">
+		<id column="id" property="id" />
+		<result column="type" property="type" />
+		<result column="org_id" property="orgId" />
+		<result column="username" property="username" />
+		<result column="password" property="password" />
+		<result column="truename" property="truename" />
+		<result column="head_img_name" property="headImgName"/>
+		<result column="sex" property="sex" />
+		<result column="phone" property="phone"/>
+		<result column="email" property="email"/>
+		<result column="state" property="state"/>
+
+		<result column="is_delete" property="isDelete" />
+		<result column="create_by" property="createBy" />
+		<result column="create_date" property="createDate" />
+		<result column="update_by" property="updateBy" />
+		<result column="update_date" property="updateDate" />
+		<result column="role_id" property="roleId" />
+
+		<result column="orgName" property="orgName"/>
+		<result column="roleName" property="roleName"/>
+	</resultMap>
+
+	<sql id="Column_Where_If">
+
+		<if test="orgIds != null and orgIds.size()>0">
+			AND su.org_id in
+			<foreach collection="orgIds" item="item" index="index" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="id != null">
+			AND su.id = #{id}
+		</if>
+		<if test="type != null and type != ''">
+			AND su.type = #{type}
+		</if>
+		<if test="username != null and username != ''">
+			AND su.username like CONCAT('%',#{username},'%')
+		</if>
+		<if test="truename != null and truename != ''">
+			AND su.truename like CONCAT('%',#{truename},'%')
+		</if>
+        <if test="sex != null and sex != ''">
+			AND su.sex = #{sex}
+		</if>
+		<if test="phone != null and phone != ''">
+			AND su.phone = #{phone}
+		</if>
+		<if test="email != null and email != ''">
+			AND su.email = #{email}
+		</if>
+		<if test="state != null and state != ''">
+			AND su.state = #{state}
+		</if>
+	</sql>
+
+	<!--条件查询 -->
+	<select id="selectPageParam" resultMap="BaseResultMap">
+		SELECT su.*,
+		o.name orgName,
+		r.name roleName
+		FROM sys_user su
+		LEFT JOIN organization o ON su.org_id = o.id
+		LEFT JOIN role r ON su.role_id = r.id
+		<where>
+			su.is_delete = 0
+			<include refid="Column_Where_If"/>
+		</where>
+		ORDER BY su.id desc
+	</select>
+
+	<!--根据用户id查询用户信息-->
+	<select id="getById" resultMap="BaseResultMap">
+		SELECT
+		su.*,
+		org.name AS orgName
+		FROM sys_user su
+		LEFT JOIN organization org ON su.org_id = org.id
+		WHERE su.id = #{id}
+	</select>
+
+	<!--根据用户姓名查询用户信息-->
+	<select id="getByUserName" resultMap="BaseResultMap">
+        SELECT *
+        FROM sys_user
+        WHERE
+			username = #{username} AND is_delete = 0
+	</select>
+
+	<!--修改用户-->
+	<update id="updateSysUserInfo" parameterType="com.winphone.xjwrj.entity.SysUser">
+		UPDATE sys_user su
+		<set>
+			<if test="orgId != null">
+				su.org_id = #{orgId},
+			</if>
+			<if test=" username != null and username != '' ">
+				su.username = #{username},
+			</if>
+			<if test=" password != null and password != '' ">
+				su.password = #{password},
+			</if>
+			<if test=" truename != null and truename != '' ">
+				su.truename = #{truename},
+			</if>
+			<if test=" headImgName != null and headImgName != '' ">
+				su.head_img_name = #{headImgName},
+			</if>
+			<if test=" sex != null and sex != '' ">
+				su.sex = #{sex},
+			</if>
+			<if test=" phone != null and phone != '' ">
+				su.phone = #{phone},
+			</if>
+			<if test=" email != null and email != '' ">
+				su.email = #{email},
+			</if>
+			<if test=" state != null and state != '' ">
+				su.state = #{state},
+			</if>
+			<if test="isDelete != null and isDelete != ''">
+				su.is_delete = #{isDelete},
+			</if>
+			<if test="updateBy != null ">
+				su.update_by = #{updateBy},
+			</if>
+			<if test="updateDate != null ">
+				su.update_date = #{updateDate},
+			</if>
+			<if test="roleId != null">
+				su.role_id = #{roleId},
+			</if>
+		</set>
+		WHERE
+		  su.id = #{id}
+	</update>
+
+	<!--用户软删除-->
+	<update id="deleteById" parameterType="com.winphone.xjwrj.entity.SysUser">
+		UPDATE sys_user su
+		SET su.is_delete = 1
+		WHERE
+		su.id = #{id}
+	</update>
+
+	<!--唯一性验证-->
+	<select id="selectByMapOnce" resultMap="BaseResultMap">
+		SELECT
+		su.*
+		FROM sys_user su
+		<where>
+			su.is_delete = 0
+			<if test="id != null">
+				AND su.id = #{id}
+			</if>
+			<if test="username != null and username != ''">
+				AND su.username = #{username}
+			</if>
+			<if test="truename != null and truename != ''">
+				AND su.truename = #{truename}
+			</if>
+			<if test="phone != null and phone != ''">
+				AND su.phone = #{phone}
+			</if>
+			<if test="email != null and email != ''">
+				AND su.email = #{email}
+			</if>
+			<if test="state != null and state != ''">
+				AND su.state = #{state}
+			</if>
+		</where>
+	</select>
+
+
+</mapper>

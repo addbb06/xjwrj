@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.winphone.xjwrj.mapper.DeviceInfoMapper">
+
+	<!-- 通用查询映射结果 -->
+	<resultMap id="BaseResultMap" type="com.winphone.xjwrj.entity.DeviceInfo">
+		<id column="id" property="id" />
+		<result column="device_name" property="deviceName" />
+		<result column="device_code" property="deviceCode" />
+		<result column="device_type_id" property="deviceTypeId" />
+		<result column="device_category_id" property="deviceCategoryId" />
+		<result column="gps_id" property="gpsId" />
+		<result column="device_img" property="deviceImg" />
+		<result column="device_status" property="deviceStatus" />
+		<result column="flyer_id" property="flyerId" />
+		<result column="create_by" property="createBy" />
+		<result column="create_date" property="createDate" />
+		<result column="update_by" property="updateBy" />
+		<result column="update_date" property="updateDate" />
+		<result column="is_delete" property="isDelete" />
+		<result column="remark" property="remark" />
+		<result column="org_id" property="orgId" />
+
+		<result column="ccbh" property="ccbh" />
+		<result column="xhsj" property="xhsj" />
+		<result column="zhouj" property="zhouj" />
+		<result column="zdqfzl" property="zdqfzl" />
+		<result column="dcgg" property="dcgg" />
+		<result column="rwbj" property="rwbj" />
+		<result column="jzsblx" property="jzsblx" />
+		<result column="ccsj" property="ccsj" />
+		<result column="bxnx" property="bxnx" />
+		<result column="wxjl" property="wxjl" />
+		<result column="ppxh" property="ppxh" />
+		<result column="ssjg" property="ssjg" />
+		<result column="pp" property="pp" />
+		<result column="lb" property="lb" />
+		<result column="fwlx" property="fwlx" />
+		<result column="status" property="status"/>
+		<result column="shrid" property="shrid"/>
+		<result column="shsj" property="shsj"/>
+		<result column="shbz" property="shbz"/>
+
+		<result column="deviceTypeName" property="deviceTypeName" />
+		<result column="deviceCategoryName" property="deviceCategoryName" />
+		<result column="flyerName" property="flyerName" />
+		<result column="positionTime" property="positionTime" />
+		<result column="lat" property="lat" />
+		<result column="lng" property="lng" />
+		<result column="course" property="course" />
+		<result column="isStop" property="isStop" />
+
+		<result column="rwzd" property="rwzd" />
+		<result column="orgName" property="orgName" />
+
+		<collection property="deviceFileList" ofType="com.winphone.xjwrj.entity.DeviceFile" column="id">
+			<result column="id" property="deviceId"/>
+			<result column="file_name" property="fileName"/>
+		</collection>
+
+	</resultMap>
+
+	<sql id="Column_Where_If">
+		<if test="id != null">
+			AND d.id = #{id}
+		</if>
+		<if test="deviceName != null and deviceName != ''">
+			AND d.device_name like CONCAT('%',#{deviceName},'%')
+		</if>
+		<if test="deviceCode != null and deviceCode != ''">
+			AND d.device_code like CONCAT('%',#{deviceCode},'%')
+		</if>
+		<if test="deviceStatus != null and deviceStatus != ''">
+			AND d.device_status  = #{deviceStatus}
+		</if>
+		<if test="deviceTypeId != null">
+			AND d.device_type_id = #{deviceTypeId}
+		</if>
+		<if test="deviceCategoryId != null">
+			AND d.device_category_id = #{deviceCategoryId}
+		</if>
+		<if test="gpsId != null">
+			AND d.gps_id = #{gpsId}
+		</if>
+		<if test="flyerId != null">
+			AND d.flyer_id = #{flyerId}
+		</if>
+		<if test="orgId != null">
+			AND d.org_id = #{orgId}
+		</if>
+	</sql>
+
+	<!--条件查询 -->
+	<select id="selectPageParam" resultMap="BaseResultMap">
+		SELECT
+		d.*, dt.device_type_name AS deviceTypeName,
+		org.name AS orgName,
+		dc.category_name AS deviceCategoryName
+		FROM
+		device_info d
+		LEFT JOIN device_type dt ON d.device_type_id = dt.id
+		LEFT JOIN organization org ON d.org_id = org.id
+		LEFT JOIN device_category dc ON d.device_category_id = dc.id
+		<where>
+			d.is_delete = 0
+			and d.fwlx = 1
+			<include refid="Column_Where_If"/>
+		</where>
+		ORDER BY d.id desc
+	</select>
+
+	<!--条件查询 -->
+	<select id="selectAppPageParam" resultMap="BaseResultMap">
+		SELECT
+		d.*,
+		df.file_name,
+		f.username flyerName
+		FROM
+		device_info d
+		LEFT  JOIN  device_file df ON df.device_id = d.id
+		LEFT JOIN   flyer f ON  f.id = d.flyer_id
+		<where>
+			d.is_delete = 0
+			and d.fwlx = 2
+			<if test="flyerId != null">
+				and d.flyer_id = #{flyerId}
+			</if>
+			<include refid="Column_Where_If"/>
+		</where>
+		ORDER BY d.id desc
+	</select>
+
+	<!--条件查询 -->
+	<select id="selectByTask" resultMap="BaseResultMap">
+		SELECT
+		*
+		FROM
+		(
+		SELECT
+		device_info.*, task_info.rwzd rwzd
+		FROM
+		device_info
+		LEFT JOIN task_device ON device_info.id = task_device.did
+		LEFT JOIN task_info ON task_info.id = task_device.task_id
+		WHERE
+		device_info.org_id =  #{orgId}
+		AND device_info.is_delete = 0
+		AND device_info.fwlx = 1
+		ORDER BY
+		device_info.id,
+		task_info.create_date DESC
+		) T
+		GROUP BY
+		T.id
+	</select>
+
+	<!--插入并返回主键-->
+	<insert id="saveDevice" useGeneratedKeys="true" keyProperty="id" parameterType="com.winphone.xjwrj.entity.DeviceInfo">
+		INSERT INTO device_info (
+		<trim suffixOverrides=",">
+			<if test="id !=null">
+				id,
+			</if>
+			<if test="deviceName != null and deviceName != ''">
+				device_name,
+			</if>
+			<if test="deviceCode != null and deviceCode != ''">
+				device_code,
+			</if>
+			<if test="deviceTypeId != null">
+				device_type_id,
+			</if>
+			<if test="deviceCategoryId != null">
+				device_category_id,
+			</if>
+			<if test="gpsId != null">
+				gps_id,
+			</if>
+			<if test="deviceImg != null and deviceImg != ''">
+				device_img,
+			</if>
+			<if test="deviceStatus != null and deviceStatus != ''">
+				device_status,
+			</if>
+			<if test="flyerId != null ">
+				flyer_id,
+			</if>
+			<if test="createBy != null ">
+				create_by,
+			</if>
+			<if test="createDate != null">
+				create_date,
+			</if>
+			<if test="updateBy != null ">
+				update_by,
+			</if>
+			<if test="updateDate != null">
+				update_date,
+			</if>
+			<if test="isDelete != null and isDelete != ''">
+				is_delete,
+			</if>
+			<if test="remark != null and remark != ''">
+				remark,
+			</if>
+			<if test="orgId != null ">
+				org_id,
+			</if>
+			<if test="ccbh != null ">
+				ccbh,
+			</if>
+			<if test="xhsj != null ">
+				xhsj,
+			</if>
+			<if test="zhouj != null ">
+				zhouj,
+			</if>
+			<if test="zdqfzl != null ">
+				zdqfzl,
+			</if>
+			<if test="dcgg != null ">
+				dcgg,
+			</if>
+			<if test="rwbj != null ">
+				rwbj,
+			</if>
+			<if test="jzsblx != null ">
+				jzsblx,
+			</if>
+			<if test="ccsj != null ">
+				ccsj,
+			</if>
+			<if test="bxnx != null ">
+				bxnx,
+			</if>
+			<if test="wxjl != null ">
+				wxjl,
+			</if>
+			<if test="ppxh != null ">
+				ppxh,
+			</if>
+			<if test="ssjg != null ">
+				ssjg,
+			</if>
+		</trim>
+		)
+		VALUES (
+		<trim suffixOverrides=",">
+			<if test="id != null">
+				#{id},
+			</if>
+			<if test="deviceName != null and deviceName != ''">
+				#{deviceName},
+			</if>
+			<if test="deviceCode != null and deviceCode != ''">
+				#{deviceCode},
+			</if>
+			<if test="deviceTypeId != null">
+				#{deviceTypeId},
+			</if>
+			<if test="deviceCategoryId != null">
+				#{deviceCategoryId},
+			</if>
+			<if test="gpsId != null">
+				#{gpsId},
+			</if>
+			<if test="deviceImg != null and deviceImg != ''">
+				#{deviceImg},
+			</if>
+			<if test="deviceStatus != null and deviceStatus != ''">
+				#{deviceStatus},
+			</if>
+			<if test="flyerId != null ">
+				#{flyerId},
+			</if>
+			<if test="createBy != null ">
+				#{createBy},
+			</if>
+			<if test="createDate != null">
+				#{createDate},
+			</if>
+			<if test="updateBy != null ">
+				#{updateBy},
+			</if>
+			<if test="updateDate != null">
+				#{updateDate},
+			</if>
+			<if test="isDelete != null and isDelete != ''">
+				#{isDelete},
+			</if>
+			<if test="remark != null and remark != ''">
+				#{remark},
+			</if>
+			<if test="orgId != null ">
+				#{orgId},
+			</if>
+			<if test="ccbh != null ">
+				#{ccbh},
+			</if>
+			<if test="xhsj != null ">
+				#{xhsj},
+			</if>
+			<if test="zhouj != null ">
+				#{zhouj},
+			</if>
+			<if test="zdqfzl != null ">
+				#{zdqfzl},
+			</if>
+			<if test="dcgg != null ">
+				#{dcgg},
+			</if>
+			<if test="rwbj != null ">
+				#{rwbj},
+			</if>
+			<if test="jzsblx != null ">
+				#{jzsblx},
+			</if>
+			<if test="ccsj != null ">
+				#{ccsj},
+			</if>
+			<if test="bxnx != null ">
+				#{bxnx},
+			</if>
+			<if test="wxjl != null ">
+				#{wxjl},
+			</if>
+			<if test="ppxh != null ">
+				#{ppxh},
+			</if>
+			<if test="ssjg != null ">
+				#{ssjg},
+			</if>
+		</trim>
+		);
+	</insert>
+
+	<!--根据id查询详情-->
+	<select id="selectDeviceInfoById" resultMap="BaseResultMap">
+		SELECT
+			d.*, dt.device_type_name AS deviceTypeName,
+			fl.username AS flyerName,
+			dc.category_name AS deviceCategoryName,
+			df.file_name
+		FROM
+			device_info d
+		LEFT JOIN device_type dt ON d.device_type_id = dt.id
+		LEFT JOIN flyer fl ON d.flyer_id = fl.id
+		LEFT JOIN device_category dc ON d.device_category_id = dc.id
+		LEFT JOIN device_file df ON df.device_id = d.id
+        WHERE d.id = #{id}
+	</select>
+
+	<!--根据gpsid查询设备详情-->
+	<select id="selectDeviceInfoByGpsId" resultMap="BaseResultMap">
+		SELECT
+			d.*, dt.device_type_name AS deviceTypeName,
+			fl.username AS flyerName,
+			dc.category_name AS deviceCategoryName
+		FROM
+			device_info d
+		LEFT JOIN device_type dt ON d.device_type_id = dt.id
+		LEFT JOIN flyer fl ON d.flyer_id = fl.id
+		LEFT JOIN device_category dc ON d.device_category_id = dc.id
+        WHERE d.gps_id = #{gpsId}
+	</select>
+
+	<!--唯一性验证-->
+	<select id="selectByMapOnce" resultMap="BaseResultMap">
+		SELECT
+		d.*
+		FROM device_info d
+		<where>
+			d.is_delete = 0
+			<if test="id != null">
+				AND d.id = #{id}
+			</if>
+			<if test="deviceName != null and deviceName != ''">
+				AND d.device_name = #{deviceName}
+			</if>
+			<if test="deviceCode != null and deviceCode != ''">
+				AND d.device_code = #{deviceCode}
+			</if>
+		</where>
+	</select>
+    <select id="selectDeviceAndLocation" resultMap="BaseResultMap">
+		SELECT *
+		FROM device_info
+		WHERE is_delete = 0
+		LIMIT 0,#{size}
+	</select>
+
+    <!--解除gps设备绑定-->
+	<update id="unBandingGpsDevice">
+		UPDATE device_info SET gps_id = NULL WHERE id = #{id}
+	</update>
+
+	<select id="selectCountByCcbhAndId" resultType="java.lang.Integer">
+		select count(1) from device_info b
+		<where>
+			b.is_delete = 0
+			<if test="id != null">
+				AND b.id != #{id}
+			</if>
+			<if test="ccbh != null and ccbh != ''">
+				AND b.ccbh = #{ccbh}
+			</if>
+		</where>
+	</select>
+
+</mapper>

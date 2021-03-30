@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.winphone.xjwrj.mapper.SysMessageMapper">
+
+	<!-- 通用查询映射结果 -->
+	<resultMap id="BaseResultMap" type="com.winphone.xjwrj.entity.SysMessage">
+		<id column="id" property="id" />
+		<result column="msg_title" property="msgTitle" />
+		<result column="msg_content" property="msgContent" />
+		<result column="sender_id" property="senderId" />
+		<result column="receiver_id" property="receiverId" />
+		<result column="msg_status" property="msgStatus" />
+		<result column="create_date" property="createDate" />
+		<result column="update_date" property="updateDate" />
+
+		<result column="sender" property="sender"/>
+		<result column="receiver" property="receiver"/>
+	</resultMap>
+
+	<!-- 通用查询结果列 -->
+	<sql id="Base_Column_List">
+		m.id AS id,
+		m.msg_title AS msgTitle,
+		m.msg_content AS msgContent,
+		m.sender_id AS senderId,
+		m.receiver_id AS receiverId,
+		m.msg_status AS msgStatus,
+		m.create_date AS createDate,
+		m.update_date AS updateDate
+	</sql>
+
+	<sql id="Column_Where_If">
+		<if test="id != null">
+			AND m.id = #{id}
+		</if>
+		<if test="msgTitle != null and msgTitle != ''">
+			AND m.msg_title like CONCAT('%',#{msgTitle},'%')
+		</if>
+		<if test="msgContent != null and msgContent != ''">
+			AND m.msg_content like CONCAT('%',#{msgContent},'%')
+		</if>
+		<if test="senderId != null ">
+			AND m.sender_id = #{senderId}
+		</if>
+		<if test="receiverId != null">
+			AND m.receiver_id = #{receiverId}
+		</if>
+		<if test="msgStatus != null and msgStatus != ''">
+			AND m.msg_status = #{msgStatus}
+		</if>
+	</sql>
+
+	<select id="selectPageAllParam" resultMap="BaseResultMap">
+		SELECT
+		m.*,
+		ru.truename AS receiver
+		FROM sys_message m
+		LEFT JOIN sys_user su ON m.sender_id = su.id
+		LEFT JOIN sys_user ru ON m.receiver_id = ru.id
+		<where>
+			<include refid="Column_Where_If"/>
+			<if test="sender != null and sender != '' ">
+				AND su.truename = #{sender}
+			</if>
+			<if test="receiver != null and receiver != '' ">
+				AND ru.truename = #{receiver}
+			</if>
+		</where>
+	</select>
+
+	<select id="getDetailById" resultType="com.winphone.xjwrj.entity.SysMessage">
+		SELECT
+		su.truename AS sender,
+		ru.truename AS receiver,
+		<include refid="Base_Column_List"/>
+		FROM sys_message m
+		LEFT JOIN sys_user su ON m.sender_id = su.id
+		LEFT JOIN sys_user ru ON m.receiver_id = ru.id
+		WHERE m.id = #{id}
+
+	</select>
+</mapper>

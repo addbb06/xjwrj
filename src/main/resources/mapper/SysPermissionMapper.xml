@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.winphone.xjwrj.mapper.SysPermissionMapper">
+
+	<!-- 通用查询映射结果 -->
+	<resultMap id="BaseResultMap" type="com.winphone.xjwrj.entity.SysPermission">
+		<id column="id" property="id" />
+		<result column="pid" property="pid" />
+		<result column="name" property="name" />
+		<result column="code" property="code" />
+		<result column="order_num" property="orderNum" />
+		<result column="url" property="url" />
+		<result column="menu" property="menu" />
+		<result column="icon" property="icon" />
+		<result column="remark" property="remark" />
+		<result column="is_delete" property="isDelete" />
+		<result column="create_time" property="createTime" />
+		<result column="create_by" property="createBy" />
+		<result column="update_by" property="updateBy" />
+		<result column="update_time" property="updateTime" />
+	</resultMap>
+
+    <select id="selectByRoleId" resultMap="BaseResultMap">
+		SELECT sp.*
+		FROM sys_permission sp
+		LEFT JOIN sys_role_permission srp ON sp.id = srp.permission_id
+		<where>
+			srp.role_id = #{roleId}
+			<if test="onlyMenu">
+				AND sp.menu = 1
+			</if>
+		</where>
+		order by order_num
+	</select>
+
+	<select id="queryAll" resultMap="BaseResultMap">
+		SELECT * from sys_permission
+		<where>
+			sys_permission.is_delete = 0
+		</where>
+		order by order_num
+
+	</select>
+
+</mapper>

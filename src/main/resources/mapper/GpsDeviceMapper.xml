@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.winphone.xjwrj.mapper.GpsDeviceMapper">
+
+	<!-- 通用查询映射结果 -->
+	<resultMap id="BaseResultMap" type="com.winphone.xjwrj.entity.GpsDevice">
+		<id column="id" property="id" />
+		<result column="gps_device_name" property="gpsDeviceName" />
+		<result column="gps_device_code" property="gpsDeviceCode" />
+		<result column="gps_device_id" property="gpsDeviceId" />
+		<result column="gps_device_status" property="gpsDeviceStatus" />
+		<result column="model" property="model" />
+		<result column="send_command" property="sendCommand" />
+		<result column="time_zone" property="timeZone" />
+		<result column="warn_str" property="warnStr" />
+		<result column="key" property="key" />
+		<result column="sim_no" property="simNo" />
+		<result column="create_by" property="createBy" />
+		<result column="create_date" property="createDate" />
+		<result column="update_by" property="updateBy" />
+		<result column="update_date" property="updateDate" />
+		<result column="is_delete" property="isDelete" />
+		<result column="remark" property="remark" />
+		<result column="org_id" property="orgId" />
+
+		<result column="deviceName" property="deviceName" />
+	</resultMap>
+
+	<sql id="Column_Where_If">
+		<if test="id != null">
+			AND gd.id = #{id}
+		</if>
+		<if test="gpsDeviceName != null and gpsDeviceName != ''">
+			AND gd.gps_device_name like CONCAT('%',#{gpsDeviceName},'%')
+		</if>
+		<if test="gpsDeviceCode != null and gpsDeviceCode != ''">
+			AND gd.gps_device_code like CONCAT('%',#{gpsDeviceCode},'%')
+		</if>
+		<if test="orgId != null">
+			AND gd.org_id = #{orgId}
+		</if>
+	</sql>
+
+	<!--条件查询 -->
+	<select id="selectPageParam" resultMap="BaseResultMap">
+		SELECT gd.*
+		FROM gps_device gd
+		<where>
+			gd.is_delete = 0
+			<include refid="Column_Where_If"/>
+		</where>
+		ORDER BY gd.id desc
+	</select>
+
+	<!--根据id查询详情-->
+	<select id="selectGpsDeviceById" resultMap="BaseResultMap">
+		SELECT
+			gp.*, d.device_name AS deviceName
+		FROM
+			gps_device gp
+		LEFT JOIN device_info d ON gp.id = d.gps_id
+		WHERE gp.id = #{id}
+	</select>
+
+	<!--唯一性验证-->
+	<select id="selectByMapOnce" resultMap="BaseResultMap">
+		SELECT
+		gp.*
+		FROM gps_device gp
+		<where>
+			gp.is_delete = 0
+			<if test="id != null">
+				AND gp.id = #{id}
+			</if>
+			<if test="gpsDeviceCode != null and gpsDeviceCode != ''">
+				AND gp.gps_device_code = #{gpsDeviceCode}
+			</if>
+			<if test="key != null and key != ''">
+				AND gp.key = #{key}
+			</if>
+			<if test="simNo != null and simNo != ''">
+				AND gp.sim_no = #{simNo}
+			</if>
+		</where>
+	</select>
+
+
+</mapper>

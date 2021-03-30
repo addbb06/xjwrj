@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.winphone.xjwrj.mapper.RepairMapper">
+
+	<!-- 通用查询映射结果 -->
+	<resultMap id="BaseResultMap" type="com.winphone.xjwrj.entity.RepairInfo">
+		<id column="id" property="id" />
+		<result column="did" property="did" />
+		<result column="wxzt" property="wxzt" />
+		<result column="bz" property="bz" />
+		<result column="wxsj" property="wxsj" />
+		<result column="wxdd" property="wxdd" />
+		<result column="wxcb" property="wxcb" />
+		<result column="fsid" property="fsid" />
+		<result column="create_by" property="createBy" />
+		<result column="create_date" property="createDate" />
+		<result column="update_by" property="updateBy" />
+		<result column="update_date" property="updateDate" />
+		<result column="is_delete" property="isDelete" />
+		<result column="org_id" property="orgId" />
+		<result column="wxsm" property="wxsm" />
+
+		<result column="createByName" property="createByName" />
+		<result column="deviceName" property="deviceName" />
+		<result column="deviceCode" property="deviceCode" />
+
+
+	</resultMap>
+
+	<!--条件查询 -->
+	<select id="selectPageAllParam" resultMap="BaseResultMap">
+		SELECT
+		r.*,
+		u.truename createByName,
+		di.device_code deviceCode,
+		di.device_name deviceName
+		FROM
+		repair_info r
+		LEFT JOIN device_info di ON r.did = di.id
+		LEFT JOIN sys_user u ON r.create_by = u.id
+		<where>
+			r.is_delete = 0
+			<include refid="Column_Where_If"/>
+		</where>
+		ORDER BY r.create_date desc
+	</select>
+
+	<sql id="Column_Where_If">
+		<if test="id != null">
+			AND r.id = #{id}
+		</if>
+		<if test="flyerId != null">
+			AND r.fsid = #{fsid}
+		</if>
+		<if test="did != null">
+			AND r.did = #{did}
+		</if>
+		<if test="orgId != null">
+			AND r.org_id = #{orgId}
+		</if>
+	</sql>
+
+	<select id="getById" resultMap="BaseResultMap">
+		SELECT
+		r.*,
+		u.truename createByName,
+		di.device_code deviceCode,
+		di.device_name deviceName
+		FROM
+		repair_info r
+		LEFT JOIN device_info di ON r.did = di.id
+		LEFT JOIN sys_user u ON r.create_by = u.id
+		where r.id = #{id}
+	</select>
+
+	<update id="updateByRepair">
+		update repair_info set id = #{id}
+
+	</update>
+
+</mapper>

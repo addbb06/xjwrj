@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.winphone.xjwrj.mapper.DevicePartInfoMapper">
+
+	<!-- 通用查询映射结果 -->
+	<resultMap id="BaseResultMap" type="com.winphone.xjwrj.entity.DevicePartInfo">
+		<id column="id" property="id" />
+		<result column="device_id" property="deviceId" />
+		<result column="parts_name" property="partsName" />
+		<result column="production_date" property="productionDate" />
+		<result column="life_time" property="lifeTime" />
+		<result column="create_by" property="createBy" />
+		<result column="create_date" property="createDate" />
+		<result column="update_by" property="updateBy" />
+		<result column="update_date" property="updateDate" />
+		<result column="is_delete" property="isDelete" />
+		<result column="remark" property="remark"/>
+		<result column="org_id" property="orgId"/>
+
+		<result column="deviceName" property="deviceName"/>
+	</resultMap>
+
+	<sql id="Column_Where_If">
+		<if test="id != null">
+			AND dpi.id = #{id}
+		</if>
+		<if test="partsName != null and partsName != ''">
+			AND dpi.parts_name like CONCAT('%',#{partsName},'%')
+		</if>
+		<if test="deviceId != null ">
+			AND dpi.device_id  = #{deviceId}
+		</if>
+		<if test="orgId != null">
+			AND dpi.org_id = #{orgId}
+		</if>
+	</sql>
+
+	<!--条件查询 -->
+	<select id="selectPageParam" resultMap="BaseResultMap">
+		SELECT
+		dpi.*,
+		di.device_name AS deviceName
+		FROM
+		device_part_info dpi
+		LEFT JOIN device_info di ON di.id = dpi.device_id
+		<where>
+			dpi.is_delete = 0
+			<include refid="Column_Where_If"/>
+		</where>
+		ORDER BY dpi.id desc
+	</select>
+
+</mapper>

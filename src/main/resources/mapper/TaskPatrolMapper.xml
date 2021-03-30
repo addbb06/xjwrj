@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.winphone.xjwrj.mapper.TaskPatrolMapper">
+
+	<!-- 通用查询映射结果 -->
+	<resultMap id="BaseResultMap" type="com.winphone.xjwrj.entity.TaskPatrol">
+		<id column="id" property="id" />
+		<result column="task_code" property="taskCode" />
+		<result column="task_title" property="taskTitle" />
+		<result column="task_content" property="taskContent" />
+		<result column="task_date" property="taskDate" />
+		<result column="task_place" property="taskPlace" />
+		<result column="task_status" property="taskStatus" />
+		<result column="task_result" property="taskResult" />
+		<result column="task_report_time" property="taskReportTime" />
+		<result column="is_delete" property="isDelete" />
+		<result column="create_by" property="createBy" />
+		<result column="create_date" property="createDate" />
+		<result column="update_by" property="updateBy" />
+		<result column="update_date" property="updateDate" />
+		<result column="jsrid" property="jsrid" />
+		<result column="jssj" property="jssj" />
+		<result column="org_id" property="orgId" />
+		<result column="jsrName" property="jsrName" />
+	</resultMap>
+
+
+	<select id="selectPageAllParam" resultMap="BaseResultMap">
+		SELECT
+		t.*,
+		pu.username AS jsrName
+		FROM task_patrol t
+		LEFT JOIN flyer pu ON t.jsrid = pu.id
+		<where>
+			t.is_delete = 0
+			<include refid="Column_Where_If"/>
+		</where>
+	</select>
+
+	<sql id="Column_Where_If">
+		<if test="taskTitle != null">
+			AND t.task_title = #{taskTitle}
+		</if>
+		<if test="id != null">
+			AND t.id = #{id}
+		</if>
+		<if test="taskCode != null and taskCode != ''">
+			AND t.task_code like CONCAT('%',#{taskCode},'%')
+		</if>
+		<if test="orgId != null">
+			AND t.org_id = #{orgId}
+		</if>
+		<if test="taskTitle != null and taskTitle != ''">
+			AND t.task_title like CONCAT('%',#{taskTitle},'%')
+		</if>
+		<if test="taskContent != null and msgContent != ''">
+			AND t.task_content like CONCAT('%',#{taskContent},'%')
+		</if>
+		<if test="taskStatus != null and taskStatus != ''">
+			AND t.task_status = #{taskStatus}
+		</if>
+	</sql>
+
+</mapper>

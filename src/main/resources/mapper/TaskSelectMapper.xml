@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.winphone.xjwrj.mapper.TaskSelectMapper">
+
+	<!-- 通用查询映射结果 -->
+	<resultMap id="BaseResultMap" type="com.winphone.xjwrj.entity.TaskSelect">
+		<id column="id" property="id" />
+		<result column="task_id" property="taskId" />
+		<result column="flyer_id" property="flyerId" />
+		<result column="create_date" property="createDate" />
+		<result column="task_code" property="taskCode" />
+
+	</resultMap>
+
+	<select id="selectPageAllParam" resultMap="BaseResultMap">
+		SELECT
+		ts.*,
+		ti.task_code
+		FROM task_select ts
+		LEFT JOIN task_info ti ON ti.id = ts.task_id
+		<where>
+			ts.flyer_id = #{flyerId}
+		</where>
+	</select>
+
+</mapper>

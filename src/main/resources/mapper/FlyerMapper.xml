@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.winphone.xjwrj.mapper.FlyerMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.winphone.xjwrj.entity.Flyer">
+        <id column="id" property="id"/>
+        <result column="phone" property="phone"/>
+        <result column="password" property="password"/>
+        <result column="username" property="username"/>
+        <result column="sex" property="sex"/>
+        <result column="birthday" property="birthday"/>
+        <result column="certificate_type" property="certificateType"/>
+        <result column="certificate_code" property="certificateCode"/>
+        <result column="certificate_img" property="certificateImg"/>
+        <result column="issue_date" property="issueDate"/>
+        <result column="expiry_date" property="expiryDate"/>
+        <result column="level" property="level"/>
+        <result column="create_by" property="createBy"/>
+        <result column="create_date" property="createDate"/>
+        <result column="update_by" property="updateBy"/>
+        <result column="update_date" property="updateDate"/>
+        <result column="is_delete" property="isDelete"/>
+        <result column="remark" property="remark"/>
+        <result column="org_id" property="orgId"/>
+        <result column="rzrq" property="rzrq"/>
+        <result column="org_id" property="orgId"/>
+        <result column="wrjlb" property="wrjlb"/>
+        <result column="type" property="type"/>
+        <result column="status" property="status"/>
+        <result column="shrid" property="shrid"/>
+        <result column="shsj" property="shsj"/>
+        <result column="shbz" property="shbz"/>
+
+        <result column="deviceName" property="deviceName"/>
+        <result column="batteryName" property="batteryName"/>
+        <result column="deviceId" property="deviceId"/>
+        <result column="batteryId" property="batteryId"/>
+        <result column="sycs" property="sycs"/>
+
+        <result column="fxsj" property="fxsj"/>
+        <result column="rwcs" property="rwcs"/>
+        <result column="sfzhm" property="sfzhm"/>
+        <result column="zzjgdm" property="zzjgdm"/>
+        <result column="ssxzqy" property="ssxzqy"/>
+        <result column="ssdw" property="ssdw"/>
+
+
+        <collection property="flyerFileList" ofType="com.winphone.xjwrj.entity.FlyerFile" column="flyerId">
+            <result column="id" property="id"/>
+            <result column="file_name" property="fileName"/>
+        </collection>
+    </resultMap>
+
+
+    <sql id="Column_Where_If">
+        <if test="id != null">
+            AND fl.id = #{id}
+        </if>
+        <if test="username != null and username != ''">
+            AND fl.username like CONCAT('%',#{username},'%')
+        </if>
+        <if test="phone != null and phone != ''">
+            AND fl.phone like CONCAT('%',#{phone},'%')
+        </if>
+        <if test="orgId != null">
+            AND fl.org_id = #{orgId}
+        </if>
+        <choose>
+            <when test="type != null">
+                AND fl.type = #{type}
+            </when>
+            <otherwise>
+                AND fl.type != 3
+            </otherwise>
+        </choose>
+    </sql>
+
+    <!--条件查询 -->
+    <select id="selectPageParam" resultMap="BaseResultMap">
+        SELECT
+        fl.*,
+        SUM(ti.fxsj) fxsj,
+        if(SUM(ti.fxsj) > 0 ,count(1),0) rwcs
+        FROM
+        flyer fl
+        LEFT JOIN task_flyer tf on tf.flyery_id = fl.id
+        LEFT JOIN task_info ti on ti.id = tf.task_id
+        <where>
+            fl.is_delete = 0
+            <include refid="Column_Where_If"/>
+        </where>
+        GROUP BY fl.id
+        ORDER BY fl.id desc
+    </select>
+
+    <!--查看自己使用过的无人机-->
+    <select id="selectBattery" resultMap="BaseResultMap">
+       SELECT
+        battery_info.dcmc AS batteryName,
+        battery_info.id AS batteryId,
+        count(1) AS sycs
+        FROM
+        flyer
+        LEFT JOIN task_flyer ON flyer.id = task_flyer.flyery_id
+		LEFT JOIN task_info ON task_flyer.task_id = task_info.id
+        LEFT JOIN task_battery ON task_info.id = task_battery.task_id
+        LEFT JOIN battery_info ON battery_info.id = task_battery.bid
+        WHERE
+        flyer.id = #{id} and  flyer.org_id =#{orgId} and battery_info.id is not null
+        GROUP BY
+        battery_info.id
+    </select>
+    <!--查看自己使用过的电池-->
+    <select id="selectDevice" resultMap="BaseResultMap">
+       SELECT
+        device_info.device_name AS deviceName,
+        device_info.id AS deviceId,
+        count(1) AS sycs
+        FROM
+        flyer
+        LEFT JOIN task_flyer ON flyer.id = task_flyer.flyery_id
+		LEFT JOIN task_info ON task_flyer.task_id = task_info.id
+        LEFT JOIN task_device ON task_info.id = task_device.task_id
+        LEFT JOIN device_info ON device_info.id = task_device.did
+        WHERE
+        flyer.id =#{id} and  flyer.org_id =#{orgId} and device_info.id is not null
+        GROUP BY
+        device_info.id
+    </select>
+
+    <!--唯一性验证-->
+    <select id="selectByMapOnce" resultMap="BaseResultMap">
+        SELECT
+        fl.*
+        FROM flyer fl
+        <where>
+            fl.is_delete = 0
+            <if test="id != null">
+                AND fl.id = #{id}
+            </if>
+            <if test="username != null and username != ''">
+                AND fl.username = #{username}
+            </if>
+            <if test="certificateCode != null and certificateCode != ''">
+                AND fl.certificate_code = #{certificateCode}
+            </if>
+            <if test="phone != null and phone != ''">
+                AND fl.phone = #{phone}
+            </if>
+        </where>
+    </select>
+    <select id="findByPhoneAndPasswordAndType" resultMap="BaseResultMap">
+        SELECT
+            fl.*,ff.file_name
+        FROM flyer fl
+        LEFT JOIN flyer_file ff on fl.id = ff.flyer_id
+        WHERE fl.is_delete = 0 AND fl.phone = #{phone} AND fl.password = #{password} AND fl.type = #{type}
+    </select>
+
+
+</mapper>

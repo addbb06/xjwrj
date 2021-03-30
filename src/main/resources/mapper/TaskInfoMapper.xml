@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.winphone.xjwrj.mapper.TaskInfoMapper">
+
+	<!-- 通用查询映射结果 -->
+	<resultMap id="BaseResultMap" type="com.winphone.xjwrj.entity.TaskInfo">
+		<id column="id" property="id" />
+		<result column="task_code" property="taskCode" />
+		<result column="org_id" property="orgId" />
+		<result column="publisher_id" property="publisherId" />
+		<result column="executor_id" property="executorId" />
+		<result column="execute_device_id" property="executeDeviceId" />
+		<result column="task_title" property="taskTitle" />
+		<result column="task_content" property="taskContent" />
+		<result column="task_address" property="taskAddress" />
+		<result column="task_start_time" property="taskStartTime" />
+		<result column="task_end_time" property="taskEndTime" />
+		<result column="task_status" property="taskStatus" />
+		<result column="task_result" property="taskResult" />
+		<result column="task_report_time" property="taskReportTime" />
+		<result column="is_delete" property="isDelete" />
+		<result column="create_by" property="createBy" />
+		<result column="create_date" property="createDate" />
+		<result column="update_by" property="updateBy" />
+		<result column="update_date" property="updateDate" />
+
+		<result column="task_type" property="taskType" />
+		<result column="rwqd" property="rwqd" />
+		<result column="rwzd" property="rwzd" />
+		<result column="wd" property="wd" />
+		<result column="sd" property="sd" />
+		<result column="fl" property="fl" />
+		<result column="jj" property="jj" />
+		<result column="qy" property="qy" />
+		<result column="fxsj" property="fxsj" />
+		<result column="rwfwlx" property="rwfwlx"/>
+		<result column="shrid" property="shrid"/>
+		<result column="shsj" property="shsj"/>
+		<result column="shbz" property="shbz"/>
+		<result column="rwbj" property="rwbj"/>
+		<result column="rwrq" property="rwrq"/>
+		<result column="rwxxdd" property="rwxxdd"/>
+		<result column="latitude" property="latitude"/>
+		<result column="longitude" property="longitude"/>
+
+		<result column="publisherName" property="publisherName"/>
+		<result column="executorName" property="executorName"/>
+		<result column="executeDeviceName" property="executeDeviceName"/>
+		<result column="orgName" property="orgName"/>
+		<result column="batteryName" property="batteryName"/>
+		<result column="zxrName" property="zxrName"/>
+
+		<collection property="deviceList" ofType="com.winphone.xjwrj.entity.DeviceInfo" column="taskId">
+			<result column="did" property="id"/>
+			<result column="device_name" property="deviceName"/>
+		</collection>
+
+	</resultMap>
+
+	<!-- 通用查询结果列 -->
+	<sql id="Base_Column_List">
+		t.id,
+		t.task_code AS taskCode,
+		t.org_id AS orgId,
+		t.publisher_id AS publisherId,
+		t.executor_id AS executorId,
+		t.execute_device_id AS executeDeviceId,
+		t.task_title AS taskTitle,
+		t.task_content AS taskContent,
+		t.task_address AS taskAddress,
+		t.task_start_time AS taskStartTime,
+		t.task_end_time AS taskEndTime,
+		t.task_status AS taskStatus,
+		t.task_result AS taskResult,
+		t.is_delete AS isDelete,
+		t.create_by AS createBy,
+		t.create_date AS createDate,
+		t.update_by AS updateBy,
+		t.update_date AS updateDate,
+		t.rwqd,
+		t.rwzd,
+		t.fxsj
+	</sql>
+
+	<sql id="Column_Where_If">
+		<if test="taskType != null">
+			AND t.task_type = #{taskType}
+		</if>
+		<if test="id != null">
+			AND t.id = #{id}
+		</if>
+		<if test="taskCode != null and taskCode != ''">
+			AND t.task_code like CONCAT('%',#{taskCode},'%')
+		</if>
+		<if test="orgId != null">
+			AND t.org_id = #{orgId}
+		</if>
+		<if test="publisherId != null">
+			AND t.publisher_id = #{publisherId}
+		</if>
+		<if test="executorId != null">
+			AND t.executor_id = #{executorId}
+		</if>
+		<if test="executeDeviceId != null">
+			AND t.execute_device_id = #{executeDeviceId}
+		</if>
+		<if test="taskTitle != null and taskTitle != ''">
+			AND t.task_title like CONCAT('%',#{taskTitle},'%')
+		</if>
+		<if test="taskContent != null and msgContent != ''">
+			AND t.task_content like CONCAT('%',#{taskContent},'%')
+		</if>
+		<if test="taskStatus != null and taskStatus != ''">
+			AND t.task_status = #{taskStatus}
+		</if>
+	</sql>
+
+	<select id="selectPageAllParam" resultMap="BaseResultMap">
+		SELECT
+		t.*,
+		pu.username AS publisherName,
+		di.device_name AS executeDeviceName
+		FROM task_info t
+		LEFT JOIN flyer pu ON t.publisher_id = pu.id
+		LEFT JOIN device_info di ON t.execute_device_id = di.id
+		<where>
+			t.is_delete = 0 and t.rwfwlx = 1
+			<include refid="Column_Where_If"/>
+			<if test="publisherName != null and publisherName != '' ">
+				AND pu.truename = #{publisherName}
+			</if>
+			<if test="executorName != null and executorName != '' ">
+				AND fly.username = #{executorName}
+			</if>
+		</where>
+	</select>
+
+	<select id="allParamByPersonal" resultMap="BaseResultMap">
+		SELECT
+		t.*,
+		pu.username AS publisherName,
+		td.did,
+		di.device_name
+		FROM task_info t
+		LEFT JOIN flyer pu ON t.publisher_id = pu.id
+		LEFT JOIN task_device td on td.task_id = t.id
+		LEFT JOIN device_info di ON td.did = di.id
+		<where>
+			t.is_delete = 0
+			and t.rwfwlx = 2
+			<include refid="Column_Where_If"/>
+			<if test="publisherName != null and publisherName != '' ">
+				AND fly.username= #{publisherName}
+			</if>
+			<if test="executorName != null and executorName != '' ">
+				AND pu.truename = #{executorName}
+			</if>
+		</where>
+	</select>
+
+
+	<select id="selectOrgAndFlyer" resultMap="BaseResultMap">
+	select	fly.username AS zxrName,
+		o.name AS orgName,
+		t.*
+		FROM task_info t
+		LEFT JOIN task_flyer tf on tf.task_id = t.id
+		LEFT JOIN flyer fly ON  tf.flyery_id = fly.id
+		LEFT JOIN organization o ON fly.org_id = o.id
+		<where>
+			t.is_delete = 0 and t.rwfwlx = 1
+			<if test="orgId != null">
+			AND t.org_id != #{orgId}
+			</if>
+			<if test="taskType != null">
+				AND t.task_type = #{taskType}
+			</if>
+			<if test="publisherName != null and publisherName != '' ">
+				AND pu.truename = #{publisherName}
+			</if>
+			<if test="executorName != null and executorName != '' ">
+				AND fly.username = #{executorName}
+			</if>
+		</where>
+		GROUP BY fly.id
+	</select>
+
+	<!--按飞手查询任务-->
+	<select id="selectByFlyer" resultMap="BaseResultMap">
+		select
+		fly.username AS zxrName,
+		o.name AS orgName,
+		t.*
+		FROM task_info t
+		LEFT JOIN task_flyer tf on tf.task_id = t.id
+		LEFT JOIN flyer fly ON  tf.flyery_id = fly.id
+		LEFT JOIN organization o ON fly.org_id = o.id
+		<where>
+			t.is_delete = 0 and t.rwfwlx = 1
+			<include refid="Column_Where_If"/>
+			<if test="flyerId != null">
+				AND fly.id = #{flyerId}
+			</if>
+			<if test="taskType != null">
+				AND t.task_type = #{taskType}
+			</if>
+			<if test="publisherName != null and publisherName != '' ">
+				AND pu.truename = #{publisherName}
+			</if>
+			<if test="executorName != null and executorName != '' ">
+				AND fly.username = #{executorName}
+			</if>
+		</where>
+	</select>
+	<!--按无人机查询任务-->
+	<select id="selectByDevice" resultMap="BaseResultMap">
+		SELECT
+		t.*,
+		pu.truename AS publisherName,
+		fly.username AS executorName,
+		di.device_name AS executeDeviceName,
+		o.name AS orgName
+		FROM task_info t
+		LEFT JOIN sys_user pu ON t.publisher_id = pu.id
+		LEFT JOIN flyer fly ON t.executor_id = fly.id
+		LEFT JOIN task_device td ON t.id = td.task_id
+		LEFT JOIN device_info di ON td.did = di.id
+		LEFT JOIN organization o ON t.org_id = o.id
+		<where>
+			t.is_delete = 0 and t.rwfwlx = 1
+			<include refid="Column_Where_If"/>
+			<if test="deviceId != null">
+				AND di.id = #{deviceId}
+			</if>
+			<if test="taskType != null">
+				AND t.task_type = #{taskType}
+			</if>
+			<if test="publisherName != null and publisherName != '' ">
+				AND pu.truename = #{publisherName}
+			</if>
+			<if test="executorName != null and executorName != '' ">
+				AND fly.username = #{executorName}
+			</if>
+		</where>
+	</select>
+
+	<!--按电池查询任务-->
+	<select id="selectByBattery" resultMap="BaseResultMap">
+		SELECT
+		t.*,
+		pu.truename AS publisherName,
+		fly.username AS executorName,
+		b.dcmc AS batteryName,
+		o.name AS orgName
+		FROM task_info t
+		LEFT JOIN sys_user pu ON t.publisher_id = pu.id
+		LEFT JOIN flyer fly ON t.executor_id = fly.id
+		LEFT JOIN task_battery tb ON t.id = tb.task_id
+		LEFT JOIN battery_info b ON tb.bid = b.id
+		LEFT JOIN organization o ON t.org_id = o.id
+		<where>
+			t.is_delete = 0 and t.rwfwlx = 1
+			<include refid="Column_Where_If"/>
+			<if test="batteryId != null">
+				AND b.id = #{batteryId}
+			</if>
+			<if test="taskType != null">
+				AND t.task_type = #{taskType}
+			</if>
+			<if test="publisherName != null and publisherName != '' ">
+				AND pu.truename = #{publisherName}
+			</if>
+			<if test="executorName != null and executorName != '' ">
+				AND fly.username = #{executorName}
+			</if>
+		</where>
+	</select>
+
+	<select id="getDetailById" resultMap="BaseResultMap">
+		SELECT
+		fly.username AS publisherName,
+		t.*
+		FROM task_info t
+		LEFT JOIN flyer fly ON t.publisher_id = fly.id
+		WHERE t.id = #{id}
+	</select>
+
+	<select id="selectHistoryTask" resultMap="BaseResultMap">
+		SELECT
+		f.username AS executeDeviceName,
+		<include refid="Base_Column_List"/>
+		FROM task_info t
+		LEFT JOIN task_flyer tf ON t.id = tf.task_id
+		left join flyer f on tf.flyery_id = f.id
+		<where>
+			t.is_delete = 0 and t.rwfwlx = 1
+			<include refid="Column_Where_If"/>
+			<if test="startTime != null ">
+				t.task_start_time <![CDATA[ >= ]]> #{startTime}
+			</if>
+			<if test="startTime != null ">
+				t.task_end_time <![CDATA[ <= ]]> #{endTime}
+			</if>
+		</where>
+
+	</select>
+</mapper>

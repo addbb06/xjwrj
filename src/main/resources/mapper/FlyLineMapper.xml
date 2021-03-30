@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.winphone.xjwrj.mapper.FlyLineMapper">
+
+	<!-- 通用查询映射结果 -->
+	<resultMap id="BaseResultMap" type="com.winphone.xjwrj.entity.FlyLine">
+		<id column="id" property="id" />
+		<result column="device_id" property="deviceId" />
+		<result column="task_id" property="taskId" />
+		<result column="flyer_id" property="flyerId" />
+		<result column="lng_arry" property="lngArry" />
+		<result column="lat_arry" property="latArry" />
+		<result column="speed_arry" property="speedArry" />
+		<result column="course_arry" property="courseArry" />
+		<result column="mileage" property="mileage" />
+		<result column="start_time" property="startTime" />
+		<result column="end_time" property="endTime" />
+		<result column="fly_time" property="flyTime" />
+	</resultMap>
+
+    <!-- 统计飞行里程数、飞行总时长 -->
+    <select id="sumMileageAndFlyTime" resultType="map">
+		SELECT
+			IFNULL(SUM(fl.mileage),0) AS sumMileage,
+			IFNULL(SUM(fl.fly_time),0) AS sumFlyTime
+		FROM fly_line fl
+		<where>
+			<if test="deviceId != null">
+				AND fl.device_id = #{deviceId}
+			</if>
+			<if test="taskId != null">
+				AND fl.task_id = #{taskId}
+			</if>
+			<if test="flyerId != null">
+				AND fl.flyer_id = #{flyerId}
+			</if>
+		</where>
+
+	</select>
+	<!-- 根据设备id 统计飞行次数 -->
+	<select id="countFlyTimesByDeviceIdOrFlyerId" resultType="java.lang.Integer">
+		SELECT COUNT(*)
+		FROM fly_line
+		<where>
+			1=1
+			<if test="deviceId != null">
+				AND device_id = #{deviceId}
+			</if>
+			<if test="flyerId != null">
+				AND flyer_id = #{flyerId}
+			</if>
+		</where>
+	</select>
+
+	<select id="selectByTaskId" resultMap="BaseResultMap">
+		SELECT
+			fl.*
+		FROM fly_line fl
+		WHERE fl.task_id = #{taskId}
+	</select>
+
+	<!-- 根据时间查询已完成任务的轨迹 -->
+	<select id="selectOverLineList" resultMap="BaseResultMap">
+		SELECT
+			fl.*
+		FROM fly_line fl
+			LEFT JOIN task_info t ON fl.task_id = t.id
+		<where>
+			t.is_delete = 0 AND t.task_status = 1
+			<if test="startTime != null and startTime != ''">
+				AND DATE_FORMAT(fl.start_time,'%Y-%m-%d %T') <![CDATA[ >= ]]> DATE_FORMAT(#{startTime},'%Y-%m-%d %T')
+			</if>
+			<if test="endTime != null and endTime != ''">
+				AND DATE_FORMAT(fl.end_time,'%Y-%m-%d %T') <![CDATA[ <= ]]> DATE_FORMAT(#{endTime},'%Y-%m-%d %T')
+			</if>
+		</where>
+
+	</select>
+
+	<update id="updateFullById">
+		UPDATE fly_line
+		SET device_id = #{deviceId},
+			task_id = #{taskId},
+			lng_arry = #{lngArry},
+			lat_arry = #{latArry},
+			speed_arry = #{speedArry},
+			course_arry = #{courseArry},
+			mileage = #{mileage},
+			start_time = #{startTime},
+			end_time = #{endTime},
+			fly_time = #{flyTime}
+		WHERE
+			id = #{id}
+	</update>
+
+</mapper>
